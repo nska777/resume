@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: { default: "Ваше имя — Portfolio", template: "%s — Portfolio" },
   description: "Портфолио. Next.js / React / GSAP. Проекты, навыки, контакты.",
   openGraph: {
-    title: "Ваше имя — Portfolio",
+    title: "Роман — Portfolio",
     description: "Проекты, навыки, контакты.",
     url: "https://your-domain.com",
     siteName: "Portfolio",
