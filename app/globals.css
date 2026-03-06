@@ -1,26 +1,202 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* твои стили ниже */
+:root { color-scheme: dark; }
+
+/* ===== Glitch loop (без рамок/фона) ===== */
+.glitchLoop {
+  position: relative;
+  display: inline-block;
+  will-change: transform, filter;
+  /* убрали "плашку" — оставляем только аккуратный glow на буквах */
+  text-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(56, 189, 248, 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* два цветовых канала (RGB split) — только по тексту */
+.glitchLoop::before,
+.glitchLoop::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, clip-path, opacity;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* cyan */
+.glitchLoop::before {
+  color: rgba(56, 189, 248, 1);
+  mix-blend-mode: screen;
+  text-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+  clip-path: inset(0 0 55% 0);
 }
 
+/* magenta */
+.glitchLoop::after {
+  color: rgba(236, 72, 153, 0.95);
+  mix-blend-mode: screen;
+  text-shadow: 0 0 18px rgba(236, 72, 153, 0.48);
+  clip-path: inset(55% 0 0 0);
+}
+
+/* Scanlines СТРОГО ВНУТРИ БУКВ (без прямоугольника!) */
+.glitchScan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* рисуем линии как фон */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.16) 0px,
+    rgba(255, 255, 255, 0.16) 1px,
+    transparent 2px,
+    transparent 7px
+  );
+
+  /* и клипаем фон по тексту */
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  opacity: 0;
+  mix-blend-mode: overlay;
+  filter: blur(0.15px);
+  will-change: opacity, transform;
+}
+
+/* ===== LOOP пока hover ===== */
+.glitchLoop:hover {
+  filter: saturate(1.25) contrast(1.06);
+  animation: glitchLoop-shake 520ms steps(2, end) infinite;
+}
+
+.glitchLoop:hover::before {
+  opacity: 1;
+  animation: glitchLoop-top 650ms steps(2, end) infinite;
+}
+
+.glitchLoop:hover::after {
+  opacity: 1;
+  animation: glitchLoop-bottom 650ms steps(2, end) infinite;
+}
+
+.glitchLoop:hover .glitchScan {
+  opacity: 0.72;
+  animation: glitchLoop-scan 700ms steps(2, end) infinite;
+}
+
+/* keyframes */
+@keyframes glitchLoop-shake {
+  0%   { transform: translate(0, 0) skewX(0deg); }
+  12%  { transform: translate(-2px, 0) skewX(-1deg); }
+  24%  { transform: translate(2px, -1px) skewX(1deg); }
+  36%  { transform: translate(-1px, 2px) skewX(-1deg); }
+  48%  { transform: translate(2px, 1px) skewX(1deg); }
+  60%  { transform: translate(-2px, -1px) skewX(-1deg); }
+  72%  { transform: translate(1px, 0) skewX(1deg); }
+  100% { transform: translate(0, 0) skewX(0deg); }
+}
+
+@keyframes glitchLoop-top {
+  0%   { transform: translate(0, 0); clip-path: inset(0 0 55% 0); }
+  25%  { transform: translate(8px, -2px); clip-path: inset(8% 0 44% 0); }
+  50%  { transform: translate(-7px, 1px); clip-path: inset(16% 0 36% 0); }
+  75%  { transform: translate(9px, 0); clip-path: inset(4% 0 48% 0); }
+  100% { transform: translate(0, 0); clip-path: inset(0 0 55% 0); }
+}
+
+@keyframes glitchLoop-bottom {
+  0%   { transform: translate(0, 0); clip-path: inset(55% 0 0 0); }
+  25%  { transform: translate(-9px, 2px); clip-path: inset(60% 0 0 0); }
+  50%  { transform: translate(7px, -1px); clip-path: inset(66% 0 0 0); }
+  75%  { transform: translate(-10px, 0); clip-path: inset(57% 0 0 0); }
+  100% { transform: translate(0, 0); clip-path: inset(55% 0 0 0); }
+}
+
+@keyframes glitchLoop-scan {
+  0%   { transform: translateY(0); }
+  33%  { transform: translateY(1px); }
+  66%  { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+/* smooth scroll + корректные якоря с фиксированным header */
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 80px; /* чуть больше, чем header (64px), чтобы было красиво */
+}
+/* ========= SCROLL ROOT (единственный скролл-контейнер) ========= */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#scroll-root {
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 64px;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+.inertiaText {
+  will-change: transform, filter;
+  transform: translateZ(0);
+}
+/* ===== PDF / PRINT для резюме ===== */
+
+@media print {
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  .resume-toolbar {
+    display: none !important;
+  }
+
+  .resume-page {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  .resume-grid {
+    grid-template-columns: 1.45fr 0.95fr !important;
+    gap: 12px !important;
+  }
+
+  .resume-card,
+  .resume-inner-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.12) !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .resume-chip {
+    color: #111111 !important;
+    border: 1px solid rgba(0,0,0,0.18) !important;
+    background: #ffffff !important;
+  }
+
+  a {
+    color: #111111 !important;
+    text-decoration: none !important;
+  }
+
 }
